@@ -1,0 +1,33 @@
+version: "3"
+
+tasks:
+  start:
+    aliases:
+      - run
+    desc: "Run service through local env variable"
+    cmds:
+        - CONFIG_PATH="./config/local.yaml" go run ./cmd/sso/main.go
+  startfl:
+    aliases:
+      - runf
+    desc: "Run service through flag (priority)"
+    cmds:
+      - go run ./cmd/sso/main.go --config="./config/local.yaml"
+  build:
+    desc: "Build program without docstrings and information about debugging (imporve performance)"
+    cmds:
+      - go build -o ./sso  -ldflags "-s -w" ./cmd/sso/main.go
+      - chmod +x ./sso
+  startex:
+    desc: "Run executable file with local env variable"
+    aliases:
+      - "runex"
+    cmds:
+      - CONFIG_PATH="./config/local.yaml" ./sso"
+  startexfl:
+    desc: "Run executable file with flag (priority)"
+    aliases:
+      - "runexf"
+    cmds:
+      - ./sso --config="./config/local.yaml"
+      
