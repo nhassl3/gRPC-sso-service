@@ -27,7 +27,7 @@ func main() {
 
 	application := app.New(log, cfg.GRPC.Port, cfg.StoragePath, cfg.TokenTTL)
 
-	application.GRPCServer.MustRun() // panic when erros occurs
+	go application.GRPCServer.MustRun() // panic when erros occurs
 
 	// Graceful shutdown
 	stop := make(chan os.Signal, 1)
