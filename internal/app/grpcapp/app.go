@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	opRun = "grpcapp.Run"
+	opRun  = "grpcapp.Run"
 	opStop = "grpcapp.Stop"
 )
 
@@ -39,7 +39,6 @@ func (a *App) MustRun() {
 	}
 }
 
-
 // Run gRPC server
 func (a *App) Run() error {
 	log := a.log.With(slog.String("op", opRun), slog.Int("port", a.port))
@@ -56,7 +55,7 @@ func (a *App) Run() error {
 	if err := a.gRPCServer.Serve(l); err != nil {
 		return fmt.Errorf("%s: %w", opRun, err)
 	}
-	
+
 	return nil
 }
 

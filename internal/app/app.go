@@ -12,7 +12,7 @@ type App struct {
 }
 
 func New(log *slog.Logger, grpcPort int, storagePath string, tokenTTL time.Duration) *App {
-	// TODO: initial storage 
+	// TODO: initial storage
 
 	// TODO: init auth service
 
