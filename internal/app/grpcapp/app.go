@@ -20,10 +20,11 @@ type App struct {
 	port       int
 }
 
-func New(log *slog.Logger, port int) *App {
+func New(log *slog.Logger, port int, auth authgRPC.Auth) *App {
 	gRPCServer := grpc.NewServer()
 
-	authgRPC.Register(gRPCServer)
+	// TODO: добавить auth интерфейс с реализованными методами Login, RegisterNewUser, IsAdmin
+	authgRPC.Register(gRPCServer, auth)
 
 	return &App{
 		log:        log,
