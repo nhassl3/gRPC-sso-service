@@ -2,12 +2,15 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"time"
 
 	"github.com/nhassl3/sso/internal/domain/models"
+	"github.com/nhassl3/sso/internal/lib/jwt"
 	sl "github.com/nhassl3/sso/internal/lib/logger/sl"
+	"github.com/nhassl3/sso/internal/storage"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -15,6 +18,11 @@ const (
 	opRegisterUser = "auth.RegisterNewUser"
 	opLogin        = "auth.Login"
 	opIsAmdin      = "auth.IsAdmin"
+)
+
+var (
+	ErrInvalidCredentials = errors.New("invalid credentials")
+	ErrGenerateJWToken    = errors.New("token generation error")
 )
 
 type Auth struct {
@@ -66,8 +74,38 @@ func (a *Auth) Login(
 	password string,
 	appID int,
 ) (string, error) {
-	// TODO: implement
-	return "", nil
+	log := a.log.With(
+		slog.String("op", opLogin),
+		slog.String("email", email),
+		slog.Int("AppID", appID),
+	)
+
+	user, err := a.usrProvider.User(ctx, email)
+	if err != nil {
+		if errors.Is(err, storage.ErrUserNotFound) {
+			log.Warn("user not found", sl.ErrLog(err))
+
+			return "", fmt.Errorf("%s: %w", opLogin, ErrInvalidCredentials)
+		}
+	}
+
+	if err := bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(password)); err != nil {
+		log.Warn("invalid credentials", sl.ErrLog(err))
+
+		return "", fmt.Errorf("%s: %w", opLogin, ErrInvalidCredentials)
+	}
+
+	app, err := a.appProvider.App(ctx, appID)
+	if err != nil {
+		return "", fmt.Errorf("%s: %w", opLogin, err)
+	}
+
+	token, err := jwt.NewToken(user, app, a.tokenTTL)
+	if err != nil {
+		return "", fmt.Errorf("%s: %w", opLogin, err)
+	}
+
+	return token, nil
 }
 
 // RegisterNewUser lets user register in system with given credentials
@@ -87,9 +125,17 @@ func (a *Auth) RegisterNewUser(
 
 		return 0, fmt.Errorf("%s: %w", opRegisterUser, err)
 	}
-	_ = passHash
 
-	return 0, nil
+	id, err := a.usrSaver.SaveUser(ctx, email, passHash)
+	if err != nil {
+		log.Error("failed to save user in database", sl.ErrLog(err))
+
+		return 0, fmt.Errorf("%s: %w", opRegisterUser, err)
+	}
+
+	log.Info("User registered", slog.Int64("id", id))
+
+	return id, nil
 }
 
 // IsAdmin checks user if is have a admin permissions'

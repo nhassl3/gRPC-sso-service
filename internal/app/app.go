@@ -19,7 +19,7 @@ func New(log *slog.Logger, grpcPort int, storagePath string, tokenTTL time.Durat
 	var appProvider auth.AppProvider
 
 	// TODO: init auth service
-	auth := auth.New(log, usrSaver, usrProvider, appProvider, time.Hour*68)
+	auth := auth.New(log, usrSaver, usrProvider, appProvider, tokenTTL)
 
 	grpcApp := grpcapp.New(log, grpcPort, auth)
 
