@@ -27,7 +27,7 @@ func main() {
 
 	application := app.New(log, cfg.GRPC.Port, cfg.StoragePath, cfg.TokenTTL)
 
-	go application.GRPCServer.MustRun() // panic when erros occurs
+	go application.GRPCServer.MustRun() // panic when errors occurs
 
 	// Graceful shutdown
 	stop := make(chan os.Signal, 1)
@@ -59,8 +59,7 @@ func setupLogger(env string) (log *slog.Logger) {
 	return
 }
 
-// setupPrettySlog for more perception information while
-// service is running
+// setupPrettySlog for more perception information while service is running
 func setupPrettySlog(level slog.Level) *slog.Logger {
 	opts := slogpretty.PrettyHandlerOptions{
 		SlogOpts: &slog.HandlerOptions{
