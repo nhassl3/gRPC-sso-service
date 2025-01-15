@@ -17,12 +17,13 @@ import (
 const (
 	opRegisterUser = "auth.RegisterNewUser"
 	opLogin        = "auth.Login"
-	opIsAmdin      = "auth.IsAdmin"
+	opIsAdmin      = "auth.IsAdmin"
 )
 
 var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
-	ErrGenerateJWToken    = errors.New("token generation error")
+	ErrInvalidAppID       = errors.New("invalid app id")
+	ErrUserExists         = errors.New("user already exists")
 )
 
 type Auth struct {
@@ -66,7 +67,7 @@ func New(
 // Login checks if user with given credentials exists in the system
 //
 // If user exists with given email, but password is incorrect, returns error
-// If user doesn't exists, returns error
+// If user doesn't exist, returns error
 // Else returns string value (token) and nil for error object
 func (a *Auth) Login(
 	ctx context.Context,
@@ -89,7 +90,7 @@ func (a *Auth) Login(
 		}
 	}
 
-	if err := bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(password)); err != nil {
+	if err = bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(password)); err != nil {
 		log.Warn("invalid credentials", sl.ErrLog(err))
 
 		return "", fmt.Errorf("%s: %w", opLogin, ErrInvalidCredentials)
@@ -128,8 +129,11 @@ func (a *Auth) RegisterNewUser(
 
 	id, err := a.usrSaver.SaveUser(ctx, email, passHash)
 	if err != nil {
+		if errors.Is(err, storage.ErrUserExists) {
+			log.Warn("user already exists", sl.ErrLog(err))
+			return 0, fmt.Errorf("%s: %w", opRegisterUser, ErrUserExists)
+		}
 		log.Error("failed to save user in database", sl.ErrLog(err))
-
 		return 0, fmt.Errorf("%s: %w", opRegisterUser, err)
 	}
 
@@ -138,7 +142,7 @@ func (a *Auth) RegisterNewUser(
 	return id, nil
 }
 
-// IsAdmin checks user if is have a admin permissions'
+// IsAdmin checks user if is had an admin permissions'
 //
 // If it's ordinary user returns false value
 // Else true value for admin
@@ -146,6 +150,21 @@ func (a *Auth) IsAdmin(
 	ctx context.Context,
 	userID int64,
 ) (bool, error) {
-	// TODO: implement
-	return false, nil
+	log := a.log.With(
+		slog.String("op", opIsAdmin),
+		slog.Int64("userID", userID),
+	)
+
+	isAdmin, err := a.usrProvider.IsAdmin(ctx, userID)
+	if err != nil {
+		if errors.Is(err, storage.ErrAppNotFound) {
+			log.Warn("user not found", sl.ErrLog(err))
+			return false, fmt.Errorf("%s: %w", opIsAdmin, ErrInvalidAppID)
+		}
+		return false, fmt.Errorf("%s: %w", opIsAdmin, err)
+	}
+
+	log.Info("checked if user is admin", slog.Bool("is_admin", isAdmin))
+
+	return isAdmin, nil
 }

@@ -11,18 +11,17 @@ import (
 
 func TestNewToken(t *testing.T) {
 	testCases := []struct {
-		name       string
-		user       models.User
-		app        models.App
-		duration   time.Duration
-		expectErr  bool
+		name      string
+		user      models.User
+		app       models.App
+		duration  time.Duration
+		expectErr bool
 	}{
 		{
 			name: "Valid token generation",
 			user: models.User{
-				ID:    123131,
+				ID:    3131,
 				Email: "user@example.com",
-				
 			},
 			app: models.App{
 				ID:     3131,
@@ -42,6 +41,32 @@ func TestNewToken(t *testing.T) {
 				Secret: "",
 			},
 			duration:  time.Hour,
+			expectErr: true,
+		},
+		{
+			name: "Invalid token generation - empty duration",
+			user: models.User{
+				ID:    1354,
+				Email: "user@example.com",
+			},
+			app: models.App{
+				ID:     1723813,
+				Secret: "adad",
+			},
+			duration:  0,
+			expectErr: true,
+		},
+		{
+			name: "Invalid token generation - empty secret and duration",
+			user: models.User{
+				ID:    1354,
+				Email: "user@example.com",
+			},
+			app: models.App{
+				ID:     1723813,
+				Secret: "",
+			},
+			duration:  0,
 			expectErr: true,
 		},
 	}
@@ -65,9 +90,10 @@ func TestNewToken(t *testing.T) {
 				assert.True(t, parsedToken.Valid)
 
 				claims := parsedToken.Claims.(jwt.MapClaims)
-				assert.Equal(t, tt.user.ID, claims["uid"])
+				assert.NoError(t, claims.Valid())
+				assert.EqualValues(t, tt.user.ID, claims["uid"])
 				assert.Equal(t, tt.user.Email, claims["email"])
-				assert.Equal(t, tt.app.ID, claims["app_id"])
+				assert.EqualValues(t, tt.app.ID, claims["app_id"])
 
 				exp := claims["exp"].(float64)
 				assert.WithinDuration(t, time.Unix(int64(exp), 0), time.Now().Add(tt.duration), time.Minute)
