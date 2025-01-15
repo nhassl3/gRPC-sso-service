@@ -5,7 +5,9 @@ go 1.22.2
 require (
 	github.com/fatih/color v1.18.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/golang-migrate/migrate v3.5.4+incompatible
 	github.com/ilyakaznacheev/cleanenv v1.5.0
+	github.com/mattn/go-sqlite3 v1.14.24
 	github.com/nhassl3/gRPC-sso-service v0.0.0-20250112195657-37a76565358f
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/crypto v0.28.0
