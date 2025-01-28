@@ -1,3 +1,5 @@
+![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/nhassl3/gRPC-sso-service) ![GitHub last commit](https://img.shields.io/github/last-commit/nhassl3/gRPC-sso-service) ![GitHub License](https://img.shields.io/github/license/nhassl3/gRPC-sso-service) ![GitHub Created At](https://img.shields.io/github/created-at/nhassl3/gRPC-sso-service) ![GitHub contributors](https://img.shields.io/github/contributors/nhassl3/gRPC-sso-service) ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/nhassl3/gRPC-sso-service)
+
 # 🎉 SSO service
 
 So far, this service implements authorization (registration, login, admin validation). But soon there will be services for permissions and more.
